@@ -1,4 +1,3 @@
-```python
 import json
 import os
 
@@ -12,27 +11,14 @@ from telegram.ext import (
     filters,
 )
 
-
-# =========================
-# تنظیمات بات
-# =========================
-
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-
-# آیدی عددی تلگرام ادمین
 ADMIN_ID = 1452364528
-
 
 WELCOME_TEXT = (
     "به چت ناشناس مانی خوش اومدی 🌹\n\n"
     "هر چیزی بخوای میتونی بفرستی:\n"
     "پیامت به صورت ناشناس برای مانی ارسال میشه."
 )
-
-
-# =========================
-# ذخیره ارتباط پیام و کاربر
-# =========================
 
 MAP_FILE = "reply_map.json"
 MAX_MAP_SIZE = 20000
@@ -45,14 +31,12 @@ def load_map():
                 return json.load(f)
         except (json.JSONDecodeError, OSError):
             return {}
-
     return {}
 
 
 def save_map(data):
     if len(data) > MAX_MAP_SIZE:
         old_keys = list(data.keys())[:len(data) - MAX_MAP_SIZE]
-
         for key in old_keys:
             del data[key]
 
@@ -63,25 +47,12 @@ def save_map(data):
 REPLY_MAP = load_map()
 
 
-# =========================
-# /start
-# =========================
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     if update.message:
         await update.message.reply_text(WELCOME_TEXT)
 
 
-# =========================
-# کاربر → ادمین
-# =========================
-
-async def user_to_admin(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
+async def user_to_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not msg:
@@ -93,8 +64,6 @@ async def user_to_admin(
         return
 
     try:
-
-        # فقط ID کاربر به ادمین نمایش داده می‌شود
         header = await context.bot.send_message(
             chat_id=ADMIN_ID,
             text=(
@@ -104,14 +73,12 @@ async def user_to_admin(
             ),
         )
 
-        # کپی پیام کاربر برای ادمین
         copied = await context.bot.copy_message(
             chat_id=ADMIN_ID,
             from_chat_id=msg.chat_id,
             message_id=msg.message_id,
         )
 
-        # هر دو پیام را به کاربر وصل می‌کنیم
         REPLY_MAP[str(header.message_id)] = user.id
         REPLY_MAP[str(copied.message_id)] = user.id
 
@@ -122,7 +89,6 @@ async def user_to_admin(
         )
 
     except TelegramError as e:
-
         print("Telegram error:", e)
 
         await msg.reply_text(
@@ -130,45 +96,29 @@ async def user_to_admin(
         )
 
 
-# =========================
-# ادمین → کاربر
-# =========================
-
-async def admin_to_user(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
+async def admin_to_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not msg:
         return
 
-    # اگر ادمین Reply نکرده باشد
     if not msg.reply_to_message:
-
         await msg.reply_text(
             "↩️ برای جواب دادن، روی پیام ناشناس Reply کن."
         )
-
         return
 
-    # پیدا کردن کاربر از روی پیام Reply شده
     target_id = REPLY_MAP.get(
         str(msg.reply_to_message.message_id)
     )
 
     if not target_id:
-
         await msg.reply_text(
             "❌ این پیام به هیچ کاربری متصل نیست."
         )
-
         return
 
     try:
-
-        # فرستادن پاسخ ادمین به کاربر
         await context.bot.copy_message(
             chat_id=target_id,
             from_chat_id=msg.chat_id,
@@ -180,13 +130,11 @@ async def admin_to_user(
         )
 
     except Forbidden:
-
         await msg.reply_text(
             "❌ این کاربر ربات را بلاک کرده."
         )
 
     except TelegramError as e:
-
         print("Telegram error:", e)
 
         await msg.reply_text(
@@ -194,22 +142,14 @@ async def admin_to_user(
         )
 
 
-# =========================
-# اجرای بات
-# =========================
-
 def main():
-
     if not BOT_TOKEN:
         raise RuntimeError(
             "BOT_TOKEN در Railway تنظیم نشده است."
         )
 
-    app = Application.builder().token(
-        BOT_TOKEN
-    ).build()
+    app = Application.builder().token(BOT_TOKEN).build()
 
-    # /start
     app.add_handler(
         CommandHandler(
             "start",
@@ -218,32 +158,21 @@ def main():
         )
     )
 
-    # پیام‌های خصوصی
     private_messages = (
         filters.ChatType.PRIVATE
         & ~filters.COMMAND
     )
 
-    # =========================
-    # پیام‌های ادمین
-    # =========================
-
     app.add_handler(
         MessageHandler(
-            private_messages
-            & filters.User(ADMIN_ID),
+            private_messages & filters.User(ADMIN_ID),
             admin_to_user
         )
     )
 
-    # =========================
-    # پیام‌های کاربران
-    # =========================
-
     app.add_handler(
         MessageHandler(
-            private_messages
-            & ~filters.User(ADMIN_ID),
+            private_messages & ~filters.User(ADMIN_ID),
             user_to_admin
         )
     )
@@ -255,4 +184,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-```
