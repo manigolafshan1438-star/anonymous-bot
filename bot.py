@@ -1,3 +1,4 @@
+```python
 import json
 import os
 
@@ -91,21 +92,13 @@ async def user_to_admin(
     if not user:
         return
 
-    username = (
-        f"@{user.username}"
-        if user.username
-        else "ندارد"
-    )
-
     try:
 
-        # پیام اطلاعاتی
+        # فقط ID کاربر به ادمین نمایش داده می‌شود
         header = await context.bot.send_message(
             chat_id=ADMIN_ID,
             text=(
                 "📩 پیام جدید\n\n"
-                f"👤 نام: {user.full_name}\n"
-                f"🔗 یوزرنیم: {username}\n"
                 f"🆔 آیدی: {user.id}\n\n"
                 "↩️ برای پاسخ، روی پیام پایین Reply کن."
             ),
@@ -262,3 +255,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
