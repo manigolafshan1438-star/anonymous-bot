@@ -16,7 +16,7 @@ ADMIN_ID = 1452364528
 
 WELCOME_TEXT = (
     "به چت ناشناس مانی خوش اومدی 🌹\n\n"
-    "هر چیزی بخوای میتونی بفرستی:\n"
+    "هر چیزی بخوای می‌تونی بفرستی: متن، ویس، عکس، فیلم، استیکر، فایل و ...\n"
     "پیامت به صورت ناشناس برای مانی ارسال میشه."
 )
 
@@ -24,7 +24,7 @@ MAP_FILE = "reply_map.json"
 MAX_MAP_SIZE = 20000
 
 
-def load_map():
+def load_map() -> dict:
     if os.path.exists(MAP_FILE):
         try:
             with open(MAP_FILE, "r", encoding="utf-8") as f:
@@ -34,10 +34,9 @@ def load_map():
     return {}
 
 
-def save_map(data):
+def save_map(data: dict) -> None:
     if len(data) > MAX_MAP_SIZE:
-        old_keys = list(data.keys())[:len(data) - MAX_MAP_SIZE]
-        for key in old_keys:
+        for key in list(data.keys())[:len(data) - MAX_MAP_SIZE]:
             del data[key]
 
     with open(MAP_FILE, "w", encoding="utf-8") as f:
@@ -68,8 +67,8 @@ async def user_to_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=ADMIN_ID,
             text=(
                 "📩 پیام جدید\n\n"
-                f"🆔 آیدی: {user.id}\n\n"
-                "↩️ برای پاسخ، روی پیام پایین Reply کن."
+                f"🆔 ID: {user.id}\n\n"
+                "↩️ برای پاسخ، روی پیام ناشناس Reply کن."
             ),
         )
 
@@ -88,11 +87,9 @@ async def user_to_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "✅ پیامت برای مانی ارسال شد."
         )
 
-    except TelegramError as e:
-        print("Telegram error:", e)
-
+    except TelegramError:
         await msg.reply_text(
-            "❌ ارسال پیام ناموفق بود."
+            "❌ ارسال پیام ناموفق بود، بعداً دوباره تلاش کن."
         )
 
 
@@ -104,7 +101,7 @@ async def admin_to_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not msg.reply_to_message:
         await msg.reply_text(
-            "↩️ برای جواب دادن، روی پیام ناشناس Reply کن."
+            "برای جواب دادن، روی پیام کاربر ریپلای کن ↩️"
         )
         return
 
@@ -114,7 +111,7 @@ async def admin_to_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not target_id:
         await msg.reply_text(
-            "❌ این پیام به هیچ کاربری متصل نیست."
+            "❌ کاربر این پیام پیدا نشد."
         )
         return
 
@@ -126,7 +123,7 @@ async def admin_to_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         await msg.reply_text(
-            "✅ پاسخ برای کاربر ارسال شد."
+            "✅ ارسال شد."
         )
 
     except Forbidden:
@@ -134,11 +131,9 @@ async def admin_to_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "❌ این کاربر ربات را بلاک کرده."
         )
 
-    except TelegramError as e:
-        print("Telegram error:", e)
-
+    except TelegramError:
         await msg.reply_text(
-            "❌ ارسال پاسخ ناموفق بود."
+            "❌ ارسال ناموفق بود."
         )
 
 
